@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>SKNSYNC • Recebimentos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+  <h1>SKNSYNC</h1>
+  <p>Servidor intermediário • Relatórios recebidos</p>
+</header>
+
+<main>
+  <div id="status">Carregando...</div>
+  <div id="lista"></div>
+</main>
+
+<script>
+async function carregar() {
+  const status = document.getElementById("status");
+  const lista = document.getElementById("lista");
+
+  try {
+    const res = await fetch("/api/recebidos");
+    const dados = await res.json();
+
+    if (!dados.length) {
+      status.textContent = "Nenhum relatório recebido ainda.";
+      return;
+    }
+
+    status.textContent = `${dados.length} envio(s) recebido(s)`;
+
+    lista.innerHTML = dados
+      .slice().reverse()
+      .map(r => `
+        <div class="card">
+          <strong>${new Date(r.recebidoEm).toLocaleString()}</strong><br>
+          Origem: ${r.origem}<br>
+          Quantidade: ${r.quantidade}
+        </div>
+      `)
+      .join("");
+
+  } catch (e) {
+    status.textContent = "Erro ao carregar dados";
+  }
+}
+
+carregar();
+</script>
+
+</body>
+</html>

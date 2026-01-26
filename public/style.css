@@ -1,0 +1,42 @@
+:root{
+  --c1:#329B99;
+  --c1d:#267876;
+  --bg:#f6f8fa;
+  --card:#fff;
+  --muted:#8a8f95;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:system-ui, sans-serif;
+  background:var(--bg);
+  color:#222;
+}
+
+header{
+  background:var(--c1);
+  color:#fff;
+  padding:16px;
+  text-align:center;
+}
+
+main{
+  max-width:800px;
+  margin:20px auto;
+  padding:0 16px;
+}
+
+#status{
+  margin-bottom:12px;
+  color:var(--muted);
+}
+
+.card{
+  background:var(--card);
+  border-radius:10px;
+  padding:12px;
+  margin-bottom:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
