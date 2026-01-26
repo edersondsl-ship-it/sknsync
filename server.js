@@ -9,7 +9,12 @@ const recebidos = [];
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static(path.join(__dirname, "public")));
-
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
+  next();
+  });
 // ================= RECEBER =================
 app.post("/api/relatorios", (req, res) => {
   const payload = req.body;
