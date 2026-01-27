@@ -47,7 +47,12 @@ async function carregar() {
         return `
           <div class="card">
             <strong>${new Date(r.recebidoEm).toLocaleString()}</strong><br>
-            Origem: ${r.origem}<br>
+                      Origem: ${
+            typeof r.origem === "object"
+              ? `${r.origem.responsavel} (${r.origem.deviceId})`
+              : r.origem
+          }<br>
+
             Quantidade: ${r.quantidade}<br><br>
 
             <a href="/api/recebidos/${idx}/download">
