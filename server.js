@@ -43,7 +43,12 @@ app.get("/api/recebidos", (req, res) => {
 function gerarTXT(item) {
   let txt = "RELATÓRIO SKNSYNC\n\n";
   txt += `Recebido em: ${item.recebidoEm}\n`;
+  if(typeof item.origem === "object"){
+  txt += `Tablet: ${item.origem.deviceId}\n`;
+  txt += `Responsável: ${item.origem.responsavel}\n`;
+}else{
   txt += `Origem: ${item.origem}\n`;
+}
   txt += `Quantidade: ${item.quantidade}\n\n`;
 
   item.dados.forEach((r, i) => {
