@@ -68,7 +68,8 @@ app.get("/api/recebidos/:idx/download", (req, res) => {
     return res.status(404).send("Arquivo não encontrado");
   }
 
-  const nome = `sknsync_${idx}_${item.recebidoEm}.txt`;
+ const nome = `sknsync_${item.origem}_${item.recebidoEm}.txt`;
+
   const conteudo = gerarTXT(item);
 
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
