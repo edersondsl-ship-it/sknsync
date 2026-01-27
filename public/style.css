@@ -40,3 +40,54 @@ main{
   margin-bottom:10px;
   box-shadow:0 2px 6px rgba(0,0,0,.08);
 }
+header.topo{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  background:var(--c1);
+  color:#fff;
+  padding:16px 20px;
+}
+
+.logo-img{
+  height:42px;
+  width:auto;
+}
+
+header .titulo h1{
+  margin:0;
+  font-size:1.4rem;
+  font-weight:600;
+  letter-spacing:0.5px;
+}
+
+header .titulo p{
+  margin:0;
+  font-size:0.85rem;
+  opacity:0.85;
+}
+.card{
+  background:var(--card);
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,.08);
+  border-left:4px solid var(--c1);
+}
+
+.card strong{
+  font-size:0.9rem;
+}
+.btn-primary{
+  display:inline-block;
+  background:var(--c1);
+  color:#fff;
+  padding:8px 14px;
+  border-radius:8px;
+  text-decoration:none;
+  font-size:0.9rem;
+}
+
+.btn-primary:hover{
+  background:var(--c1d);
+}
