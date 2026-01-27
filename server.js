@@ -1,28 +1,28 @@
 const express = require("express");
-const app = express();
 const path = require("path");
 
-app.use(express.static("public"));
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/public/index.html");
-});
-
-app.listen(3000, () => {
-  console.log("SKNSYNC rodando");
-});
-
-// memória (fase 1)
-const recebidos = [];
-
+// ================= MIDDLEWARES =================
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static(path.join(__dirname, "public")));
+
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
   next();
-  });
+});
+
+// ================= MEMÓRIA =================
+const recebidos = [];
+
+// ================= HOME =================
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 // ================= RECEBER =================
 app.post("/api/relatorios", (req, res) => {
   const payload = req.body;
@@ -38,7 +38,6 @@ app.post("/api/relatorios", (req, res) => {
     dados: payload.relatorios
   });
 
-  console.log("📥 Recebido:", payload.relatorios.length);
   res.json({ ok: true });
 });
 
@@ -47,32 +46,30 @@ app.get("/api/recebidos", (req, res) => {
   res.json(recebidos);
 });
 
-// ================= FORMATAR TXT =================
+// ================= GERAR TXT =================
 function gerarTXT(item) {
   let txt = "RELATÓRIO SKNSYNC\n\n";
   txt += `Recebido em: ${item.recebidoEm}\n`;
-  if(typeof item.origem === "object"){
-  txt += `Tablet: ${item.origem.deviceId}\n`;
-  txt += `Responsável: ${item.origem.responsavel}\n`;
-}else{
-  txt += `Origem: ${item.origem}\n`;
-}
+
+  if (typeof item.origem === "object") {
+    txt += `Tablet: ${item.origem.deviceId}\n`;
+    txt += `Responsável: ${item.origem.responsavel}\n`;
+  } else {
+    txt += `Origem: ${item.origem}\n`;
+  }
+
   txt += `Quantidade: ${item.quantidade}\n\n`;
 
   item.dados.forEach((r, i) => {
     txt += `--- RELATÓRIO ${i + 1} ---\n`;
-    if (r.texto) {
-      txt += r.texto + "\n";
-    } else {
-      txt += JSON.stringify(r, null, 2) + "\n";
-    }
-    txt += "\n";
+    txt += r.texto ? r.texto : JSON.stringify(r, null, 2);
+    txt += "\n\n";
   });
 
   return txt;
 }
 
-// ================= DOWNLOAD TXT =================
+// ================= DOWNLOAD =================
 app.get("/api/recebidos/:idx/download", (req, res) => {
   const idx = Number(req.params.idx);
   const item = recebidos[idx];
@@ -81,17 +78,11 @@ app.get("/api/recebidos/:idx/download", (req, res) => {
     return res.status(404).send("Arquivo não encontrado");
   }
 
- const nome = `sknsync_${item.origem}_${item.recebidoEm}.txt`;
-
-  const conteudo = gerarTXT(item);
+  const nome = `sknsync_${item.recebidoEm}.txt`;
 
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename="${nome}"`
-  );
-
-  res.send(conteudo);
+  res.setHeader("Content-Disposition", `attachment; filename="${nome}"`);
+  res.send(gerarTXT(item));
 });
 
 // ================= EXCLUIR =================
