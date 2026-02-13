@@ -1,0 +1,288 @@
+{
+  "funcionarios": [
+ 
+
+  {
+    "id": 308,
+    "nome": "SERGIO DOS SANTOS FREIRE",
+    "matricula": "267"
+  },
+  {
+    "id": 303,
+    "nome": "MANOEL SILVA DOS SANTOS FILHO",
+    "matricula": "184"
+  },
+  {
+    "id": 302,
+    "nome": "LUCAS NATHAN NOG. TERTULIANO",
+    "matricula": "143"
+  },
+  {
+    "id": 293,
+    "nome": "GABRIEL ROBERTO AMBRIQUE",
+    "matricula": "293"
+  },
+  {
+    "id": 294,
+    "nome": "EDERSON LEAL",
+    "matricula": "164"
+  },
+  {
+    "id": 185,
+    "nome": "FLAVIO SILVA DOS SANTOS",
+    "matricula": "185"
+  },
+  {
+    "id": 91,
+    "nome": "JOSE VICENTE MARTINS FERREIRA",
+    "matricula": "91"
+  },
+  {
+    "id": 297,
+    "nome": "MAYCON H SILVA",
+    "matricula": "24"
+  },
+  {
+    "id": 305,
+    "nome": "ANDRE VINICIUS RODRIGUES GOMES",
+    "matricula": "204"
+  }
+
+  ],
+  "os": [
+   {
+      "id_os": 105,
+      "codigo": "OS 387",
+      "descricao": "FASS INDUSTRIA E COMERCIO DE PRODUTOS AGROPECUARIOS LTDA"
+    }
+  ],
+  "os_ids": [
+  
+  {
+    "id_os_id": 242,
+    "id_os": 105,
+    "descricao": "ID 10 - PRESTAÇÃO DE SERVIÇOS DE MONTAGEM CAMPO"
+  },
+  {
+    "id_os_id": 426,
+    "id_os": 105,
+    "descricao": "ID 01 - CCMBT INTELIGENTE - SKID DE DOSAGEM AUTOMÁTICA DE DEFENSIVOS AGRÍCOLAS"
+  },
+  {
+    "id_os_id": 427,
+    "id_os": 105,
+    "descricao": "ID 02 - PMA - SKID DE DOSAGEM AUTOMÁTICA DE DEFENSIVOS AGRÍCOLAS"
+  },
+  {
+    "id_os_id": 428,
+    "id_os": 105,
+    "descricao": "ID 06 - MONTAGEM DO SKID EM FABRICA"
+  },
+  {
+    "id_os_id": 429,
+    "id_os": 105,
+    "descricao": "ID 11 - AUTOMAÇÃO"
+  },
+  {
+    "id_os_id": 430,
+    "id_os": 105,
+    "descricao": "ID 12 - STARTTUP"
+  },
+  {
+    "id_os_id": 431,
+    "id_os": 105,
+    "descricao": "ID 13 - TAF"
+  }
+
+   
+  ],
+  "sub_ids": [
+    {
+      "id_sub": 1,
+      "nome": "Montagem"
+    },
+    {
+      "id_sub": 2,
+      "nome": "Projeto"
+    },
+    {
+      "id_sub": 3,
+      "nome": "Testes e simulações"
+    },
+    {
+      "id_sub": 4,
+      "nome": "Startup"
+    },
+    {
+      "id_sub": 5,
+      "nome": "Montagem de campo"
+    },
+    {
+      "id_sub": 6,
+      "nome": "TAF"
+    }
+  ],
+  "alocacoes": [
+    {
+      "id_alocacao": 1,
+      "id_os": 96,
+      "id_os_id": 316,
+      "id_sub": 1,
+      "horas": 90
+    },
+    {
+      "id_alocacao": 2,
+      "id_os": 96,
+      "id_os_id": 316,
+      "id_sub": 2,
+      "horas": 24
+    },
+    {
+      "id_alocacao": 3,
+      "id_os": 96,
+      "id_os_id": 316,
+      "id_sub": 3,
+      "horas": 10
+    },
+    {
+      "id_alocacao": 4,
+      "id_os": 96,
+      "id_os_id": 317,
+      "id_sub": 1,
+      "horas": 110
+    },
+    {
+      "id_alocacao": 5,
+      "id_os": 96,
+      "id_os_id": 317,
+      "id_sub": 2,
+      "horas": 24
+    },
+    {
+      "id_alocacao": 6,
+      "id_os": 96,
+      "id_os_id": 317,
+      "id_sub": 3,
+      "horas": 10
+    },
+    {
+      "id_alocacao": 7,
+      "id_os": 96,
+      "id_os_id": 318,
+      "id_sub": 1,
+      "horas": 20
+    },
+    {
+      "id_alocacao": 8,
+      "id_os": 96,
+      "id_os_id": 318,
+      "id_sub": 2,
+      "horas": 24
+    },
+    {
+      "id_alocacao": 9,
+      "id_os": 96,
+      "id_os_id": 318,
+      "id_sub": 3,
+      "horas": 10
+    },
+    {
+      "id_alocacao": 10,
+      "id_os": 96,
+      "id_os_id": 347,
+      "id_sub": 1,
+      "horas": 400
+    },
+    {
+      "id_alocacao": 12,
+      "id_os": 96,
+      "id_os_id": 356,
+      "id_sub": 5,
+      "horas": 900
+    },
+    {
+      "id_alocacao": 14,
+      "id_os": 96,
+      "id_os_id": 357,
+      "id_sub": 2,
+      "horas": 150
+    },
+    {
+      "id_alocacao": 15,
+      "id_os": 141,
+      "id_os_id": 348,
+      "id_sub": 2,
+      "horas": 50
+    },
+    {
+      "id_alocacao": 16,
+      "id_os": 141,
+      "id_os_id": 349,
+      "id_sub": 2,
+      "horas": 50
+    },
+    {
+      "id_alocacao": 17,
+      "id_os": 141,
+      "id_os_id": 359,
+      "id_sub": 2,
+      "horas": 50
+    },
+    {
+      "id_alocacao": 18,
+      "id_os": 141,
+      "id_os_id": 360,
+      "id_sub": 2,
+      "horas": 50
+    },
+    {
+      "id_alocacao": 19,
+      "id_os": 142,
+      "id_os_id": 350,
+      "id_sub": 2,
+      "horas": 50
+    },
+    {
+      "id_alocacao": 20,
+      "id_os": 142,
+      "id_os_id": 351,
+      "id_sub": 2,
+      "horas": 50
+    },
+    {
+      "id_alocacao": 23,
+      "id_os": 144,
+      "id_os_id": 355,
+      "id_sub": 1,
+      "horas": 50
+    },
+    {
+      "id_alocacao": 24,
+      "id_os": 144,
+      "id_os_id": 355,
+      "id_sub": 2,
+      "horas": 24
+    },
+    {
+      "id_alocacao": 25,
+      "id_os": 144,
+      "id_os_id": 355,
+      "id_sub": 3,
+      "horas": 8
+    },
+    {
+      "id_alocacao": 26,
+      "id_os": 96,
+      "id_os_id": 358,
+      "id_sub": 4,
+      "horas": 50
+    },
+    {
+      "id_alocacao": 27,
+      "id_os": 96,
+      "id_os_id": 366,
+      "id_sub": 6,
+      "horas": 50
+    }
+  ]
+}

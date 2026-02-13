@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>SKNSYNC • Admin Sync</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="topo">
+ <img src="img/logo.png" class="logo-img">
+  <div class="titulo">
+    <h1>SKNSYNC</h1>
+    <p>Admin • Tablets</p>
+  </div>
+</header>
+
+<main>
+<div class="card">
+<select id="device">
+<option value="tablet1">Tablet 1</option>
+<option value="tablet2">Tablet 2</option>
+<option value="tablet3">Tablet 3</option>
+<option value="tablet4">Tablet 4</option>
+<option value="tablet5">Tablet 5</option>
+</select>
+
+<h3>OS</h3>
+<div id="osList"></div>
+
+<h3>Funcionários</h3>
+<div id="funcList"></div>
+
+<br>
+<button onclick="salvar()" class="btn-primary">Salvar JSON</button>
+
+<div id="status"></div>
+</div>
+</main>
+
+<script>
+let master;
+
+async function carregar() {
+  const res = await fetch("/api/sync/master");
+  master = await res.json();
+
+  const osDiv = document.getElementById("osList");
+  const funcDiv = document.getElementById("funcList");
+
+  master.os.forEach(o => {
+    osDiv.innerHTML += `
+      <label>
+      <input type="checkbox" value="${o.id_os}">
+      ${o.codigo} - ${o.descricao}
+      </label><br>
+    `;
+  });
+
+  master.funcionarios.forEach(f => {
+    funcDiv.innerHTML += `
+      <label>
+      <input type="checkbox" value="${f.id}">
+      ${f.nome}
+      </label><br>
+    `;
+  });
+}
+
+async function salvar() {
+  const device = document.getElementById("device").value;
+
+  const osIds = Array.from(
+    document.querySelectorAll("#osList input:checked")
+  ).map(i => Number(i.value));
+
+  const funcionarioIds = Array.from(
+    document.querySelectorAll("#funcList input:checked")
+  ).map(i => Number(i.value));
+
+  const res = await fetch(`/api/sync/device/${device}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ osIds, funcionarioIds })
+  });
+
+  const out = await res.json();
+
+  document.getElementById("status").innerText =
+    out.ok ? "JSON gerado com sucesso!" : "Erro ao gerar.";
+}
+
+carregar();
+</script>
+
+</body>
+</html>
