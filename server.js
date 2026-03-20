@@ -38,7 +38,9 @@ app.post("/api/relatorios", (req, res) => {
     recebidoEm: new Date().toISOString(),
     origem: payload.origem || "desconhecida",
     quantidade: payload.relatorios.length,
-    dados: payload.relatorios
+    dados: payload.relatorios,
+    downloads: 0,
+    baixadoEm: null
   });
 
   res.json({ ok: true });
@@ -72,6 +74,31 @@ function gerarTXT(item) {
   return txt;
 }
 
+// ================= DOWNLOAD ALL =================
+app.get("/api/recebidos/download/all", (req, res) => {
+  if (!recebidos.length) {
+    return res.status(404).send("Nenhum relatório disponível");
+  }
+
+  let txt = "RELATÓRIOS SKNSYNC - TODOS OS ENVIOS\n";
+  txt += `Gerado em: ${new Date().toISOString()}\n`;
+  txt += `Total: ${recebidos.length} envio(s)\n`;
+  txt += "=".repeat(50) + "\n\n";
+
+  recebidos.forEach((item, i) => {
+    txt += `===== ENVIO ${i + 1} =====\n`;
+    txt += gerarTXT(item);
+    txt += "\n";
+
+    item.downloads = (item.downloads || 0) + 1;
+    item.baixadoEm = new Date().toISOString();
+  });
+
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="sknsync_todos_${Date.now()}.txt"`);
+  res.send(txt);
+});
+
 // ================= DOWNLOAD =================
 app.get("/api/recebidos/:idx/download", (req, res) => {
   const idx = Number(req.params.idx);
@@ -80,6 +107,9 @@ app.get("/api/recebidos/:idx/download", (req, res) => {
   if (!item) {
     return res.status(404).send("Arquivo não encontrado");
   }
+
+  item.downloads = (item.downloads || 0) + 1;
+  item.baixadoEm = new Date().toISOString();
 
   const nome = `sknsync_${item.recebidoEm}.txt`;
 

@@ -10,34 +10,37 @@
 <body>
 
 <header class="topo">
- <img src="img/logo.png" class="logo-img">
+  <img src="img/logo.png" class="logo-img" alt="Logo SKNSYNC">
   <div class="titulo">
     <h1>SKNSYNC</h1>
-    <p>Admin • Tablets</p>
+    <p>Admin • Sincronização de Tablets</p>
   </div>
+  <a href="/" class="nav-link">← Relatórios</a>
 </header>
 
 <main>
-<div class="card">
-<select id="device">
-<option value="tablet1">Tablet 1</option>
-<option value="tablet2">Tablet 2</option>
-<option value="tablet3">Tablet 3</option>
-<option value="tablet4">Tablet 4</option>
-<option value="tablet5">Tablet 5</option>
-</select>
+  <div class="card">
+    <p class="section-title">Dispositivo</p>
+    <select id="device">
+      <option value="tablet1">Tablet 1</option>
+      <option value="tablet2">Tablet 2</option>
+      <option value="tablet3">Tablet 3</option>
+      <option value="tablet4">Tablet 4</option>
+      <option value="tablet5">Tablet 5</option>
+    </select>
 
-<h3>OS</h3>
-<div id="osList"></div>
+    <p class="section-title">Ordens de Serviço (OS)</p>
+    <div id="osList" class="check-group"></div>
 
-<h3>Funcionários</h3>
-<div id="funcList"></div>
+    <p class="section-title">Funcionários</p>
+    <div id="funcList" class="check-group"></div>
 
-<br>
-<button onclick="salvar()" class="btn-primary">Salvar JSON</button>
+    <div style="margin-top:20px">
+      <button onclick="salvar()" class="btn-primary">💾 Salvar JSON</button>
+    </div>
 
-<div id="status"></div>
-</div>
+    <div id="status-msg"></div>
+  </div>
 </main>
 
 <script>
@@ -50,27 +53,24 @@ async function carregar() {
   const osDiv = document.getElementById("osList");
   const funcDiv = document.getElementById("funcList");
 
-  master.os.forEach(o => {
-    osDiv.innerHTML += `
-      <label>
+  osDiv.innerHTML = master.os.map(o => `
+    <label>
       <input type="checkbox" value="${o.id_os}">
-      ${o.codigo} - ${o.descricao}
-      </label><br>
-    `;
-  });
+      ${o.codigo} – ${o.descricao}
+    </label>
+  `).join("");
 
-  master.funcionarios.forEach(f => {
-    funcDiv.innerHTML += `
-      <label>
+  funcDiv.innerHTML = master.funcionarios.map(f => `
+    <label>
       <input type="checkbox" value="${f.id}">
       ${f.nome}
-      </label><br>
-    `;
-  });
+    </label>
+  `).join("");
 }
 
 async function salvar() {
   const device = document.getElementById("device").value;
+  const msg = document.getElementById("status-msg");
 
   const osIds = Array.from(
     document.querySelectorAll("#osList input:checked")
@@ -87,9 +87,8 @@ async function salvar() {
   });
 
   const out = await res.json();
-
-  document.getElementById("status").innerText =
-    out.ok ? "JSON gerado com sucesso!" : "Erro ao gerar.";
+  msg.textContent = out.ok ? "✅ JSON gerado com sucesso!" : "❌ Erro ao gerar.";
+  msg.style.color = out.ok ? "#155724" : "#721c24";
 }
 
 carregar();

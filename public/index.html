@@ -10,19 +10,20 @@
 <body>
 
 <header class="topo">
- <img src="img/logo.png" alt="Logo SKNSYNC" class="logo-img">
+  <img src="img/logo.png" alt="Logo SKNSYNC" class="logo-img">
   <div class="titulo">
     <h1>SKNSYNC</h1>
     <p>Servidor intermediário • Relatórios recebidos</p>
   </div>
+  <a href="/admin-sync.html" class="nav-link">⚙️ Admin Sync</a>
 </header>
 
 <main>
-<a href="/api/recebidos/download/all" class="btn-primary">
-  📦 Baixar todos os envios
-</a>
+  <div class="status-bar">
+    <div id="status">Carregando...</div>
+    <a href="/api/recebidos/download/all" class="btn-primary">📦 Baixar todos</a>
+  </div>
 
-  <div id="status">Carregando...</div>
   <div id="lista"></div>
 </main>
 
@@ -36,8 +37,13 @@ async function carregar() {
     const dados = await res.json();
 
     if (!dados.length) {
-      status.textContent = "Nenhum relatório recebido ainda.";
-      lista.innerHTML = "";
+      status.textContent = "Nenhum relatório recebido.";
+      lista.innerHTML = `
+        <div class="empty-state">
+          <span class="icon">📭</span>
+          <p>Nenhum envio recebido ainda.</p>
+        </div>
+      `;
       return;
     }
 
@@ -48,24 +54,35 @@ async function carregar() {
       .reverse()
       .map((r, i) => {
         const idx = dados.length - 1 - i;
+
+        const origem = typeof r.origem === "object"
+          ? `${r.origem.responsavel} · ${r.origem.deviceId}`
+          : r.origem;
+
+        const dataRecebido = new Date(r.recebidoEm).toLocaleString("pt-BR");
+
+        let badgeHtml = "";
+        if (r.downloads > 0) {
+          const dataDownload = new Date(r.baixadoEm).toLocaleString("pt-BR");
+          badgeHtml = `<span class="badge badge-success">✓ Baixado em ${dataDownload}</span>`;
+        } else {
+          badgeHtml = `<span class="badge badge-warning">⏳ Não baixado</span>`;
+        }
+
         return `
           <div class="card">
-            <strong>${new Date(r.recebidoEm).toLocaleString()}</strong><br>
-                      Origem: ${
-            typeof r.origem === "object"
-              ? `${r.origem.responsavel} (${r.origem.deviceId})`
-              : r.origem
-          }<br>
-
-            Quantidade: ${r.quantidade}<br><br>
-
-            <a href="/api/recebidos/${idx}/download">
-              ⬇️ Baixar (.txt)
-            </a>
-            &nbsp;|&nbsp;
-            <button onclick="excluir(${idx})">
-              🗑️ Excluir
-            </button>
+            <div class="card-header">
+              <div class="card-title">${origem}</div>
+              ${badgeHtml}
+            </div>
+            <div class="card-meta">
+              <span>📅 ${dataRecebido}</span>
+              <span>📋 ${r.quantidade} item(s)</span>
+            </div>
+            <div class="card-actions">
+              <a href="/api/recebidos/${idx}/download" class="btn-download">⬇️ Baixar .txt</a>
+              <button onclick="excluir(${idx})" class="btn-danger">🗑️ Excluir</button>
+            </div>
           </div>
         `;
       })
@@ -78,14 +95,12 @@ async function carregar() {
 
 async function excluir(idx) {
   if (!confirm("Excluir este envio?")) return;
-
   await fetch(`/api/recebidos/${idx}`, { method: "DELETE" });
   carregar();
 }
 
 carregar();
 </script>
-
 
 </body>
 </html>
