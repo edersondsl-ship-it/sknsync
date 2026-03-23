@@ -130,6 +130,131 @@ app.delete("/api/recebidos/:idx", (req, res) => {
   res.json({ ok: true });
 });
 
+// ================= FOLLOW-UPS =================
+const FOLLOWUP_FILE = path.join(__dirname, "public", "followups.json");
+
+function carregarFollowups() {
+  try {
+    if (fs.existsSync(FOLLOWUP_FILE)) return JSON.parse(fs.readFileSync(FOLLOWUP_FILE, "utf8"));
+  } catch {}
+  return [];
+}
+
+function salvarFollowups(arr) {
+  fs.writeFileSync(FOLLOWUP_FILE, JSON.stringify(arr, null, 2), "utf8");
+}
+
+const followups = carregarFollowups();
+
+// POST /api/followup — recebe follow-up do SKNGE
+app.post("/api/followup", (req, res) => {
+  const data = req.body;
+  if (!data || !data.os) return res.status(400).json({ ok: false, error: "Payload inválido" });
+
+  const entry = { ...data, recebidoEm: new Date().toISOString(), downloads: 0, baixadoEm: null };
+  followups.unshift(entry);
+  salvarFollowups(followups);
+  res.json({ ok: true });
+});
+
+// GET /api/followups — lista todos
+app.get("/api/followups", (req, res) => res.json(followups));
+
+// GET /api/followups/:idx/download — download TXT
+app.get("/api/followups/:idx/download", (req, res) => {
+  const idx  = Number(req.params.idx);
+  const item = followups[idx];
+  if (!item) return res.status(404).send("Não encontrado");
+
+  item.downloads++;
+  item.baixadoEm = new Date().toISOString();
+  salvarFollowups(followups);
+
+  const d = new Date(item.recebidoEm).toLocaleString("pt-BR");
+  const linha = "═".repeat(54);
+  const div   = "─".repeat(54);
+
+  const checkTxt = (item.checklist || []).length
+    ? item.checklist.map(c => `  [${c.feito ? "X" : " "}] ${c.texto}`).join("\n")
+    : "  (nenhum item)";
+
+  let txt = `${linha}\n`;
+  txt += `  FOLLOW-UP DE OS — SKNGESTÃO\n`;
+  txt += `${linha}\n\n`;
+  txt += `Recebido em : ${d}\n`;
+  txt += `OS          : ${item.os}\n`;
+  txt += `ID/Subitem  : ${item.id_subitem || "—"}\n`;
+  txt += `Responsável : ${item.responsavel}\n`;
+  txt += `Data        : ${item.data || "—"}\n`;
+  txt += `Prox. Reunião: ${item.proxReuniao || "—"}\n`;
+  txt += `Conclusão   : ${item.dataConclusao || "—"}\n`;
+  txt += `Horas/Semana: ${item.horasSemana || "—"}\n\n`;
+  txt += `${div}\n`;
+  txt += `STATUS : ${item.status || "—"}   |   PROGRESSO : ${item.progresso ?? "—"}%\n`;
+  txt += `${div}\n\n`;
+  txt += `ATIVIDADES REALIZADAS\n${item.atividadesFeitas || "(não informado)"}\n\n`;
+  txt += `PRÓXIMAS ATIVIDADES\n${item.atividadesPrev || "(não informado)"}\n\n`;
+  txt += `CHECKLIST\n${checkTxt}\n\n`;
+  txt += `PENDÊNCIAS / BLOQUEIOS\n${item.pendencias || "(nenhuma)"}\n\n`;
+  txt += `MATERIAIS / RECURSOS\n${item.materiais || "(nenhum)"}\n\n`;
+  txt += `OBSERVAÇÕES GERAIS\n${item.observacoes || "(nenhuma)"}\n\n`;
+  txt += `${linha}\n`;
+
+  const nome = `followup_${(item.os || "os").replace(/[^a-zA-Z0-9]/g, "_")}_${item.data || "semdata"}.txt`;
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${nome}"`);
+  res.send(txt);
+});
+
+// GET /api/followups/export/all — TXT com todos
+app.get("/api/followups/export/all", (req, res) => {
+  if (!followups.length) return res.status(404).send("Nenhum follow-up disponível");
+
+  const linha = "═".repeat(54);
+  let txt = `FOLLOW-UPS SKNSYNC — EXPORTAÇÃO COMPLETA\n`;
+  txt += `Gerado em: ${new Date().toLocaleString("pt-BR")}\n`;
+  txt += `Total: ${followups.length} registro(s)\n`;
+  txt += `${linha}\n\n`;
+
+  followups.forEach((item, i) => {
+    const d    = new Date(item.recebidoEm).toLocaleString("pt-BR");
+    const div  = "─".repeat(54);
+    const checkTxt = (item.checklist || []).length
+      ? item.checklist.map(c => `  [${c.feito ? "X" : " "}] ${c.texto}`).join("\n")
+      : "  (nenhum item)";
+
+    txt += `===== FOLLOW-UP ${i + 1} =====\n`;
+    txt += `Recebido em : ${d}\n`;
+    txt += `OS          : ${item.os}\n`;
+    txt += `ID/Subitem  : ${item.id_subitem || "—"}\n`;
+    txt += `Responsável : ${item.responsavel}\n`;
+    txt += `Data        : ${item.data || "—"}\n`;
+    txt += `${div}\n`;
+    txt += `STATUS : ${item.status || "—"}   |   PROGRESSO : ${item.progresso ?? "—"}%\n`;
+    txt += `${div}\n\n`;
+    txt += `ATIVIDADES REALIZADAS\n${item.atividadesFeitas || "(não informado)"}\n\n`;
+    txt += `PRÓXIMAS ATIVIDADES\n${item.atividadesPrev || "(não informado)"}\n\n`;
+    txt += `CHECKLIST\n${checkTxt}\n\n`;
+    txt += `PENDÊNCIAS\n${item.pendencias || "(nenhuma)"}\n\n`;
+    txt += `MATERIAIS\n${item.materiais || "(nenhum)"}\n\n`;
+    txt += `OBSERVAÇÕES\n${item.observacoes || "(nenhuma)"}\n\n`;
+    txt += `${linha}\n\n`;
+  });
+
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="followups_${Date.now()}.txt"`);
+  res.send(txt);
+});
+
+// DELETE /api/followups/:idx
+app.delete("/api/followups/:idx", (req, res) => {
+  const idx = Number(req.params.idx);
+  if (!followups[idx]) return res.status(404).json({ ok: false });
+  followups.splice(idx, 1);
+  salvarFollowups(followups);
+  res.json({ ok: true });
+});
+
 // ================= START =================
 app.listen(PORT, () => {
   console.log(`🚀 SKNSYNC rodando na porta ${PORT}`);

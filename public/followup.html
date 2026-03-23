@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>SKNSYNC • Follow-ups</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<style>
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11.5px; font-weight: 700;
+  }
+  .st-NO\ PRAZO  { background:#e9faf0; color:#27ae60; }
+  .st-ATENÇÃO    { background:#fef6e4; color:#e67e22; }
+  .st-ATRASADO   { background:#fdecea; color:#e74c3c; }
+  .st-CONCLUÍDO  { background:#eaf4fd; color:#2980b9; }
+
+  .prog-bar-wrap { height: 7px; background:#e5e5e5; border-radius:99px; margin-top:6px; overflow:hidden; }
+  .prog-bar { height:100%; border-radius:99px; background:linear-gradient(90deg,#329B99,#27ae60); transition:width .4s; }
+
+  .card-meta { display:flex; flex-wrap:wrap; gap:10px; font-size:12px; color:#888; margin:8px 0 10px; }
+  .card-meta strong { color:#444; }
+
+  .card-os   { font-size:14px; font-weight:700; color:#277876; margin-bottom:4px; }
+  .card-id   { font-size:12px; color:#666; margin-bottom:8px; }
+
+  .card-body-expand { display:none; margin-top:12px; border-top:1px solid #e8f5f4; padding-top:12px; }
+  .card-body-expand.open { display:block; }
+
+  .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .detail-block { font-size:12px; }
+  .detail-block .label { font-weight:700; color:#329B99; font-size:11px; margin-bottom:3px; }
+  .detail-block .val   { color:#444; white-space:pre-wrap; }
+
+  .checklist-txt { font-size:12px; color:#444; }
+  .checklist-txt span { display:block; padding:2px 0; }
+  .check-done { color:#27ae60; }
+
+  .btn-expand {
+    background:none; border:none; font-size:12px; color:#329B99;
+    cursor:pointer; font-weight:700; padding:0; font-family:inherit;
+  }
+  .btn-expand:hover { text-decoration:underline; }
+
+  .filters {
+    display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; align-items:center;
+  }
+  .filters select, .filters input {
+    font-family:inherit; font-size:13px;
+    border:1.5px solid #c9e8e7; border-radius:8px;
+    padding:7px 12px; outline:none; background:#fff;
+  }
+  .filters select:focus, .filters input:focus { border-color:#329B99; }
+
+  .empty-state { text-align:center; padding:48px 0; color:#bbb; }
+  .empty-state .icon { font-size:48px; display:block; margin-bottom:12px; }
+
+  @media(max-width:560px) { .detail-grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <img src="img/logo.png" alt="Logo SKNSYNC" class="logo-img">
+  <div class="titulo">
+    <h1>SKNSYNC</h1>
+    <p>Follow-ups de OS recebidos</p>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:10px">
+    <a href="/" class="nav-link">📋 Relatórios</a>
+    <a href="/admin-sync.html" class="nav-link">⚙️ Admin</a>
+  </div>
+</header>
+
+<main>
+  <div class="status-bar">
+    <div id="statusTxt">Carregando...</div>
+    <button onclick="exportarTodos()" class="btn-primary">📦 Exportar todos (.txt)</button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters">
+    <input type="text" id="busca" placeholder="🔍 Buscar por OS ou responsável..." oninput="renderLista()">
+    <select id="filtroStatus" onchange="renderLista()">
+      <option value="">Todos os status</option>
+      <option>NO PRAZO</option>
+      <option>ATENÇÃO</option>
+      <option>ATRASADO</option>
+      <option>CONCLUÍDO</option>
+    </select>
+  </div>
+
+  <div id="lista"></div>
+</main>
+
+<script>
+let dados = [];
+
+const ICONES = {
+  'NO PRAZO':  '🟢',
+  'ATENÇÃO':   '🟡',
+  'ATRASADO':  '🔴',
+  'CONCLUÍDO': '✅'
+};
+
+async function carregar() {
+  try {
+    const res = await fetch('/api/followups');
+    dados = await res.json();
+    renderLista();
+    document.getElementById('statusTxt').textContent =
+      `${dados.length} follow-up(s) recebido(s)`;
+  } catch(e) {
+    document.getElementById('statusTxt').textContent = 'Erro ao carregar';
+  }
+}
+
+function renderLista() {
+  const el     = document.getElementById('lista');
+  const q      = document.getElementById('busca').value.toLowerCase();
+  const stFilt = document.getElementById('filtroStatus').value;
+
+  let lista = dados.map((r,i) => ({...r, _idx:i}));
+
+  if (q)      lista = lista.filter(r => (r.os+' '+r.responsavel).toLowerCase().includes(q));
+  if (stFilt) lista = lista.filter(r => r.status === stFilt);
+
+  if (!lista.length) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <span class="icon">📭</span>
+        <p>Nenhum follow-up encontrado.</p>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = lista.map(r => {
+    const recebido = new Date(r.recebidoEm).toLocaleString('pt-BR');
+    const ico = ICONES[r.status] || '⚪';
+    const prog = r.progresso ?? 0;
+    const baixado = r.downloads > 0
+      ? `<span class="badge badge-success">✓ Baixado ${new Date(r.baixadoEm).toLocaleDateString('pt-BR')}</span>`
+      : `<span class="badge badge-warning">⏳ Não baixado</span>`;
+
+    const checkHtml = (r.checklist || []).length
+      ? r.checklist.map(c =>
+          `<span class="${c.feito ? 'check-done' : ''}">${c.feito ? '✅' : '☐'} ${c.texto}</span>`
+        ).join('')
+      : '<span style="color:#bbb">Nenhum item</span>';
+
+    return `
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-os">${ico} ${r.os}</div>
+            <div class="card-id">${r.id_subitem || '—'}</div>
+            <span class="status-badge st-${r.status}">${r.status || '—'}</span>
+          </div>
+          ${baixado}
+        </div>
+
+        <div class="card-meta">
+          <span>👤 <strong>${r.responsavel}</strong></span>
+          <span>📅 <strong>${r.data || '—'}</strong></span>
+          <span>⏱️ <strong>${r.horasSemana || '—'}</strong></span>
+          <span>📥 Recebido: ${recebido}</span>
+        </div>
+
+        <div style="font-size:12px;color:#555;margin-bottom:6px">
+          Progresso: <strong style="color:#329B99">${prog}%</strong>
+          ${r.dataConclusao ? `· Conclusão prevista: <strong>${r.dataConclusao}</strong>` : ''}
+        </div>
+        <div class="prog-bar-wrap">
+          <div class="prog-bar" style="width:${prog}%"></div>
+        </div>
+
+        <!-- Expandível -->
+        <div style="margin-top:10px">
+          <button class="btn-expand" onclick="toggleExpand(${r._idx})">
+            <span id="expIco${r._idx}">▶</span> Ver detalhes
+          </button>
+        </div>
+
+        <div class="card-body-expand" id="exp${r._idx}">
+          <div class="detail-grid">
+            <div class="detail-block">
+              <div class="label">ATIVIDADES REALIZADAS</div>
+              <div class="val">${r.atividadesFeitas || '—'}</div>
+            </div>
+            <div class="detail-block">
+              <div class="label">PRÓXIMAS ATIVIDADES</div>
+              <div class="val">${r.atividadesPrev || '—'}</div>
+            </div>
+            <div class="detail-block">
+              <div class="label">PENDÊNCIAS / BLOQUEIOS</div>
+              <div class="val">${r.pendencias || '—'}</div>
+            </div>
+            <div class="detail-block">
+              <div class="label">MATERIAIS / RECURSOS</div>
+              <div class="val">${r.materiais || '—'}</div>
+            </div>
+          </div>
+          <div class="detail-block" style="margin-top:10px">
+            <div class="label">CHECKLIST</div>
+            <div class="checklist-txt">${checkHtml}</div>
+          </div>
+          ${r.observacoes ? `
+          <div class="detail-block" style="margin-top:10px">
+            <div class="label">OBSERVAÇÕES GERAIS</div>
+            <div class="val">${r.observacoes}</div>
+          </div>` : ''}
+          ${r.proxReuniao ? `<div style="margin-top:8px;font-size:12px;color:#555">
+            📅 Próxima reunião: <strong>${r.proxReuniao}</strong></div>` : ''}
+        </div>
+
+        <div class="card-actions">
+          <a href="/api/followups/${r._idx}/download" class="btn-download">⬇️ Baixar .txt</a>
+          <button onclick="excluir(${r._idx})" class="btn-danger">🗑️ Excluir</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleExpand(idx) {
+  const el  = document.getElementById(`exp${idx}`);
+  const ico = document.getElementById(`expIco${idx}`);
+  const open = el.classList.toggle('open');
+  ico.textContent = open ? '▼' : '▶';
+}
+
+async function excluir(idx) {
+  if (!confirm('Excluir este follow-up?')) return;
+  await fetch(`/api/followups/${idx}`, { method: 'DELETE' });
+  carregar();
+}
+
+async function exportarTodos() {
+  if (!dados.length) return alert('Nenhum follow-up para exportar.');
+  const res = await fetch('/api/followups/export/all');
+  const blob = await res.blob();
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `followups_${new Date().toISOString().slice(0,10)}.txt`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+carregar();
+setInterval(carregar, 30000);
+</script>
+
+</body>
+</html>
