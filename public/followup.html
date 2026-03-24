@@ -6,57 +6,74 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
 <style>
-  .status-badge {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 3px 10px; border-radius: 20px;
-    font-size: 11.5px; font-weight: 700;
+  .card-date {
+    font-size: 13px; font-weight: 700; color: #277876; margin-bottom: 4px;
   }
-  .st-NO\ PRAZO  { background:#e9faf0; color:#27ae60; }
-  .st-ATENÇÃO    { background:#fef6e4; color:#e67e22; }
-  .st-ATRASADO   { background:#fdecea; color:#e74c3c; }
-  .st-CONCLUÍDO  { background:#eaf4fd; color:#2980b9; }
-
-  .prog-bar-wrap { height: 7px; background:#e5e5e5; border-radius:99px; margin-top:6px; overflow:hidden; }
-  .prog-bar { height:100%; border-radius:99px; background:linear-gradient(90deg,#329B99,#27ae60); transition:width .4s; }
-
-  .card-meta { display:flex; flex-wrap:wrap; gap:10px; font-size:12px; color:#888; margin:8px 0 10px; }
-  .card-meta strong { color:#444; }
-
-  .card-os   { font-size:14px; font-weight:700; color:#277876; margin-bottom:4px; }
-  .card-id   { font-size:12px; color:#666; margin-bottom:8px; }
-
-  .card-body-expand { display:none; margin-top:12px; border-top:1px solid #e8f5f4; padding-top:12px; }
-  .card-body-expand.open { display:block; }
-
-  .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .detail-block { font-size:12px; }
-  .detail-block .label { font-weight:700; color:#329B99; font-size:11px; margin-bottom:3px; }
-  .detail-block .val   { color:#444; white-space:pre-wrap; }
-
-  .checklist-txt { font-size:12px; color:#444; }
-  .checklist-txt span { display:block; padding:2px 0; }
-  .check-done { color:#27ae60; }
-
-  .btn-expand {
-    background:none; border:none; font-size:12px; color:#329B99;
-    cursor:pointer; font-weight:700; padding:0; font-family:inherit;
+  .card-recv {
+    font-size: 11.5px; color: #aaa; margin-bottom: 12px;
   }
-  .btn-expand:hover { text-decoration:underline; }
+
+  .os-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f5f5;
+  }
+  .os-item:last-child { border-bottom: none; }
+
+  .os-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 4px;
+  }
+  .ok      { background: #329B99; }
+  .warning { background: #f0ad4e; }
+  .danger  { background: #d9534f; }
+
+  .os-item-body { flex: 1; min-width: 0; }
+  .os-item-name {
+    font-size: 13px; font-weight: 700; color: #1a3a3a;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 3px;
+  }
+  .os-item-hours { font-size: 11.5px; color: #888; margin-bottom: 5px; }
+
+  .os-bar-track {
+    height: 5px; background: #e0f2f1; border-radius: 99px; overflow: hidden;
+    margin-bottom: 5px;
+  }
+  .os-bar-fill { height: 100%; border-radius: 99px; }
+  .os-bar-fill.ok      { background: #329B99; }
+  .os-bar-fill.warning { background: #f0ad4e; }
+  .os-bar-fill.danger  { background: #d9534f; }
+
+  .os-item-obs {
+    font-size: 12px; color: #555;
+    background: #f8fefe; border-radius: 6px;
+    padding: 6px 9px; margin-top: 4px;
+    border-left: 3px solid #c9e8e7;
+    white-space: pre-wrap;
+  }
+
+  .os-perc-badge {
+    font-size: 14px; font-weight: 700;
+    min-width: 46px; text-align: right; flex-shrink: 0;
+  }
+  .os-perc-badge.ok      { color: #329B99; }
+  .os-perc-badge.warning { color: #e67e22; }
+  .os-perc-badge.danger  { color: #d9534f; }
 
   .filters {
     display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; align-items:center;
   }
-  .filters select, .filters input {
+  .filters input {
     font-family:inherit; font-size:13px;
     border:1.5px solid #c9e8e7; border-radius:8px;
     padding:7px 12px; outline:none; background:#fff;
+    flex: 1; min-width: 200px;
   }
-  .filters select:focus, .filters input:focus { border-color:#329B99; }
+  .filters input:focus { border-color:#329B99; }
 
   .empty-state { text-align:center; padding:48px 0; color:#bbb; }
   .empty-state .icon { font-size:48px; display:block; margin-bottom:12px; }
-
-  @media(max-width:560px) { .detail-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -79,16 +96,8 @@
     <button onclick="exportarTodos()" class="btn-primary">📦 Exportar todos (.txt)</button>
   </div>
 
-  <!-- Filtros -->
   <div class="filters">
-    <input type="text" id="busca" placeholder="🔍 Buscar por OS ou responsável..." oninput="renderLista()">
-    <select id="filtroStatus" onchange="renderLista()">
-      <option value="">Todos os status</option>
-      <option>NO PRAZO</option>
-      <option>ATENÇÃO</option>
-      <option>ATRASADO</option>
-      <option>CONCLUÍDO</option>
-    </select>
+    <input type="text" id="busca" placeholder="🔍 Buscar por OS ou observação..." oninput="renderLista()">
   </div>
 
   <div id="lista"></div>
@@ -96,13 +105,6 @@
 
 <script>
 let dados = [];
-
-const ICONES = {
-  'NO PRAZO':  '🟢',
-  'ATENÇÃO':   '🟡',
-  'ATRASADO':  '🔴',
-  'CONCLUÍDO': '✅'
-};
 
 async function carregar() {
   try {
@@ -116,15 +118,25 @@ async function carregar() {
   }
 }
 
+function cls(perc) {
+  if (perc > 90) return 'danger';
+  if (perc > 70) return 'warning';
+  return 'ok';
+}
+
 function renderLista() {
-  const el     = document.getElementById('lista');
-  const q      = document.getElementById('busca').value.toLowerCase();
-  const stFilt = document.getElementById('filtroStatus').value;
+  const el  = document.getElementById('lista');
+  const q   = document.getElementById('busca').value.toLowerCase();
 
-  let lista = dados.map((r,i) => ({...r, _idx:i}));
+  let lista = dados.map((r, i) => ({...r, _idx: i}));
 
-  if (q)      lista = lista.filter(r => (r.os+' '+r.responsavel).toLowerCase().includes(q));
-  if (stFilt) lista = lista.filter(r => r.status === stFilt);
+  if (q) {
+    lista = lista.filter(r => {
+      const itens = r.itens || [];
+      const textoItens = itens.map(it => (it.os || '') + ' ' + (it.observacoes || '')).join(' ');
+      return textoItens.toLowerCase().includes(q);
+    });
+  }
 
   if (!lista.length) {
     el.innerHTML = `
@@ -137,82 +149,45 @@ function renderLista() {
 
   el.innerHTML = lista.map(r => {
     const recebido = new Date(r.recebidoEm).toLocaleString('pt-BR');
-    const ico = ICONES[r.status] || '⚪';
-    const prog = r.progresso ?? 0;
-    const baixado = r.downloads > 0
+    const itens    = r.itens || [];
+    const baixado  = r.downloads > 0
       ? `<span class="badge badge-success">✓ Baixado ${new Date(r.baixadoEm).toLocaleDateString('pt-BR')}</span>`
       : `<span class="badge badge-warning">⏳ Não baixado</span>`;
 
-    const checkHtml = (r.checklist || []).length
-      ? r.checklist.map(c =>
-          `<span class="${c.feito ? 'check-done' : ''}">${c.feito ? '✅' : '☐'} ${c.texto}</span>`
-        ).join('')
-      : '<span style="color:#bbb">Nenhum item</span>';
+    const itensHtml = itens.map(it => {
+      const perc  = parseFloat(it.perc) || 0;
+      const c     = cls(perc);
+      const larg  = Math.min(perc, 100).toFixed(1);
+      const obsHtml = it.observacoes
+        ? `<div class="os-item-obs">${it.observacoes}</div>`
+        : '';
+      return `
+        <div class="os-item">
+          <div class="os-dot ${c}"></div>
+          <div class="os-item-body">
+            <div class="os-item-name">${it.os || '—'}</div>
+            <div class="os-item-hours">Usado: ${Number(it.usado).toFixed(1)}h / Previsto: ${Number(it.previsto).toFixed(1)}h</div>
+            <div class="os-bar-track">
+              <div class="os-bar-fill ${c}" style="width:${larg}%"></div>
+            </div>
+            ${obsHtml}
+          </div>
+          <div class="os-perc-badge ${c}">${perc.toFixed(0)}%</div>
+        </div>
+      `;
+    }).join('');
 
     return `
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-os">${ico} ${r.os}</div>
-            <div class="card-id">${r.id_subitem || '—'}</div>
-            <span class="status-badge st-${r.status}">${r.status || '—'}</span>
+            <div class="card-date">📅 ${r.data || '—'}</div>
+            <div class="card-recv">Recebido em ${recebido}</div>
           </div>
           ${baixado}
         </div>
 
-        <div class="card-meta">
-          <span>👤 <strong>${r.responsavel}</strong></span>
-          <span>📅 <strong>${r.data || '—'}</strong></span>
-          <span>⏱️ <strong>${r.horasSemana || '—'}</strong></span>
-          <span>📥 Recebido: ${recebido}</span>
-        </div>
-
-        <div style="font-size:12px;color:#555;margin-bottom:6px">
-          Progresso: <strong style="color:#329B99">${prog}%</strong>
-          ${r.dataConclusao ? `· Conclusão prevista: <strong>${r.dataConclusao}</strong>` : ''}
-        </div>
-        <div class="prog-bar-wrap">
-          <div class="prog-bar" style="width:${prog}%"></div>
-        </div>
-
-        <!-- Expandível -->
-        <div style="margin-top:10px">
-          <button class="btn-expand" onclick="toggleExpand(${r._idx})">
-            <span id="expIco${r._idx}">▶</span> Ver detalhes
-          </button>
-        </div>
-
-        <div class="card-body-expand" id="exp${r._idx}">
-          <div class="detail-grid">
-            <div class="detail-block">
-              <div class="label">ATIVIDADES REALIZADAS</div>
-              <div class="val">${r.atividadesFeitas || '—'}</div>
-            </div>
-            <div class="detail-block">
-              <div class="label">PRÓXIMAS ATIVIDADES</div>
-              <div class="val">${r.atividadesPrev || '—'}</div>
-            </div>
-            <div class="detail-block">
-              <div class="label">PENDÊNCIAS / BLOQUEIOS</div>
-              <div class="val">${r.pendencias || '—'}</div>
-            </div>
-            <div class="detail-block">
-              <div class="label">MATERIAIS / RECURSOS</div>
-              <div class="val">${r.materiais || '—'}</div>
-            </div>
-          </div>
-          <div class="detail-block" style="margin-top:10px">
-            <div class="label">CHECKLIST</div>
-            <div class="checklist-txt">${checkHtml}</div>
-          </div>
-          ${r.observacoes ? `
-          <div class="detail-block" style="margin-top:10px">
-            <div class="label">OBSERVAÇÕES GERAIS</div>
-            <div class="val">${r.observacoes}</div>
-          </div>` : ''}
-          ${r.proxReuniao ? `<div style="margin-top:8px;font-size:12px;color:#555">
-            📅 Próxima reunião: <strong>${r.proxReuniao}</strong></div>` : ''}
-        </div>
+        <div>${itensHtml}</div>
 
         <div class="card-actions">
           <a href="/api/followups/${r._idx}/download" class="btn-download">⬇️ Baixar .txt</a>
@@ -221,13 +196,6 @@ function renderLista() {
       </div>
     `;
   }).join('');
-}
-
-function toggleExpand(idx) {
-  const el  = document.getElementById(`exp${idx}`);
-  const ico = document.getElementById(`expIco${idx}`);
-  const open = el.classList.toggle('open');
-  ico.textContent = open ? '▼' : '▶';
 }
 
 async function excluir(idx) {
