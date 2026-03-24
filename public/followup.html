@@ -166,6 +166,7 @@ function renderLista() {
           <div class="os-dot ${c}"></div>
           <div class="os-item-body">
             <div class="os-item-name">${it.os || '—'}</div>
+            ${it.id ? `<div style="font-size:11px;color:#aaa;margin-bottom:3px">#${it.id}</div>` : ''}
             <div class="os-item-hours">Usado: ${Number(it.usado).toFixed(1)}h / Previsto: ${Number(it.previsto).toFixed(1)}h</div>
             <div class="os-bar-track">
               <div class="os-bar-fill ${c}" style="width:${larg}%"></div>
@@ -190,7 +191,6 @@ function renderLista() {
         <div>${itensHtml}</div>
 
         <div class="card-actions">
-          <a href="/api/followups/${r._idx}/download" class="btn-download">⬇️ Baixar .txt</a>
           <button onclick="excluir(${r._idx})" class="btn-danger">🗑️ Excluir</button>
         </div>
       </div>
