@@ -152,7 +152,7 @@ app.post("/api/followup", (req, res) => {
   if (!data) return res.status(400).json({ ok: false, error: "Payload inválido" });
 
   const entry = { ...data, recebidoEm: new Date().toISOString(), downloads: 0, baixadoEm: null };
-  followups.unshift(entry);
+  followups.splice(0, followups.length, entry);
   salvarFollowups(followups);
   res.json({ ok: true });
 });
