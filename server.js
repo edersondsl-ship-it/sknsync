@@ -173,14 +173,24 @@ function gerarTxtFollowup(item) {
   txt += `Data        : ${item.data || "—"}\n\n`;
 
   if (itens.length) {
-    itens.forEach((it, i) => {
+    itens.forEach((it) => {
       const perc = parseFloat(it.perc) || 0;
       const semaforo = perc > 90 ? "🔴" : perc > 70 ? "🟡" : "🟢";
       txt += `${div}\n`;
       txt += `${semaforo}  ${it.os}\n`;
       txt += `   Usado: ${Number(it.usado).toFixed(1)}h / Previsto: ${Number(it.previsto).toFixed(1)}h  (${perc.toFixed(1)}%)\n`;
+
+      const ids = it.ids || [];
+      if (ids.length) {
+        ids.forEach(id => {
+          const ip = parseFloat(id.perc) || 0;
+          const sm = ip > 90 ? "🔴" : ip > 70 ? "🟡" : "🟢";
+          txt += `      ${sm}  ${id.nome}  —  ${Number(id.usado).toFixed(1)}h / ${Number(id.previsto).toFixed(1)}h  (${ip.toFixed(1)}%)\n`;
+        });
+      }
+
       if (it.observacoes) {
-        txt += `   Observações: ${it.observacoes}\n`;
+        txt += `   Obs: ${it.observacoes}\n`;
       }
     });
     txt += `${div}\n`;
