@@ -246,6 +246,57 @@ app.delete("/api/followups/:idx", (req, res) => {
   res.json({ ok: true });
 });
 
+// ================= ASSISTENCIA =================
+const ASSIST_FILE = path.join(__dirname, "public", "assistencia.json");
+
+function carregarAssistencias() {
+  try {
+    if (fs.existsSync(ASSIST_FILE)) return JSON.parse(fs.readFileSync(ASSIST_FILE, "utf8"));
+  } catch {}
+  return [];
+}
+
+function salvarAssistencias(arr) {
+  fs.writeFileSync(ASSIST_FILE, JSON.stringify(arr, null, 2), "utf8");
+}
+
+const assistencias = carregarAssistencias();
+
+app.post("/api/assistencia", (req, res) => {
+  const payload = req.body;
+  if (!payload || !payload.relatorios) return res.status(400).json({ ok: false, error: "Payload inválido" });
+
+  assistencias.unshift({
+    recebidoEm: new Date().toISOString(),
+    origem: payload.origem || "desconhecida",
+    quantidade: payload.relatorios.length,
+    dados: payload.relatorios,
+    observacao: "",
+    downloads: 0,
+    baixadoEm: null
+  });
+  salvarAssistencias(assistencias);
+  res.json({ ok: true });
+});
+
+app.get("/api/assistencias", (req, res) => res.json(assistencias));
+
+app.put("/api/assistencias/:idx", (req, res) => {
+  const idx = Number(req.params.idx);
+  if (!assistencias[idx]) return res.status(404).json({ ok: false });
+  if (req.body.observacao !== undefined) assistencias[idx].observacao = req.body.observacao;
+  salvarAssistencias(assistencias);
+  res.json({ ok: true });
+});
+
+app.delete("/api/assistencias/:idx", (req, res) => {
+  const idx = Number(req.params.idx);
+  if (!assistencias[idx]) return res.status(404).json({ ok: false });
+  assistencias.splice(idx, 1);
+  salvarAssistencias(assistencias);
+  res.json({ ok: true });
+});
+
 // ================= START =================
 app.listen(PORT, () => {
   console.log(`🚀 SKNSYNC rodando na porta ${PORT}`);

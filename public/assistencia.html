@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>SKNSYNC • Assistência Técnica</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<style>
+/* ===== REPORT DETAIL ===== */
+.rel-equipe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+
+.rel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(50,155,153,.1);
+  border: 1px solid rgba(50,155,153,.3);
+  color: var(--c1d);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.rel-os {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+/* ===== DIAS TABLE ===== */
+.dias-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 6px;
+  font-size: 0.82rem;
+}
+
+.dias-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--c1d);
+  padding: 5px 8px;
+  border-bottom: 2px solid #e5f4f4;
+}
+
+.dias-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #f0f4f4;
+  color: #333;
+}
+
+.dias-table tr:last-child td { border-bottom: none; }
+.dias-table tr:hover td { background: #f7fafa; }
+
+.dias-table .fds td { color: #c0392b; background: #fff5f5; }
+
+.time-cell { white-space: nowrap; }
+
+/* ===== OBS ===== */
+.obs-box {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #fffdf0;
+  border: 1px solid #f0d97a;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #6b5a00;
+  white-space: pre-wrap;
+}
+
+.obs-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #9a8000;
+  margin-bottom: 4px;
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+.modal-box {
+  background: #fff;
+  border-radius: 14px;
+  padding: 26px;
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.18);
+  animation: fadeIn .2s ease;
+}
+
+.modal-box h3 {
+  font-size: 1rem;
+  color: var(--c1d);
+  margin-bottom: 14px;
+}
+
+.modal-box textarea {
+  width: 100%;
+  height: 120px;
+  border: 1.5px solid #d0d8df;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+}
+
+.modal-box textarea:focus {
+  border-color: var(--c1);
+  box-shadow: 0 0 0 3px rgba(50,155,153,.12);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  background: #fff;
+  border: 1.5px solid var(--c1);
+  color: var(--c1);
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+}
+.btn-ghost:hover { background: #e5f4f4; }
+
+.btn-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fff8e1;
+  color: #7a5c00;
+  border: 1px solid #f0d97a;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-edit:hover { background: #fff0b0; }
+</style>
+</head>
+
+<body>
+
+<header class="topo">
+  <img src="img/logo.png" alt="Logo" class="logo-img">
+  <div class="titulo">
+    <h1>SKNSYNC</h1>
+    <p>Assistência Técnica • Apontamentos recebidos</p>
+  </div>
+  <a href="/" class="nav-link">📋 Relatórios</a>
+  <a href="/followup.html" class="nav-link">📊 Follow-ups</a>
+  <a href="/admin-sync.html" class="nav-link">⚙️ Admin</a>
+</header>
+
+<main>
+  <div class="status-bar">
+    <div id="status">Carregando...</div>
+  </div>
+
+  <div id="lista"></div>
+</main>
+
+<!-- MODAL OBSERVAÇÃO -->
+<div class="modal-overlay" id="modal-obs">
+  <div class="modal-box">
+    <h3>✏️ Observação</h3>
+    <textarea id="obs-texto" placeholder="Adicione uma observação sobre este apontamento..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-primary" onclick="salvarObs()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let dados = [];
+let editIdx = null;
+
+const DIAS_SEMANA = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+function isFDS(dataStr) {
+  const [y,m,d] = dataStr.split("-").map(Number);
+  const dia = new Date(y, m-1, d).getDay();
+  return dia === 0 || dia === 6;
+}
+
+function fmtData(dataStr) {
+  const [y,m,d] = dataStr.split("-").map(Number);
+  const dt = new Date(y, m-1, d);
+  return `${String(d).padStart(2,"0")}/${String(m).padStart(2,"0")} (${DIAS_SEMANA[dt.getDay()]})`;
+}
+
+async function carregar() {
+  const status = document.getElementById("status");
+  const lista  = document.getElementById("lista");
+
+  try {
+    const res = await fetch("/api/assistencias");
+    dados = await res.json();
+
+    if (!dados.length) {
+      status.textContent = "Nenhum apontamento recebido.";
+      lista.innerHTML = `
+        <div class="empty-state">
+          <span class="icon">📭</span>
+          <p>Nenhum envio recebido ainda.</p>
+        </div>`;
+      return;
+    }
+
+    status.textContent = `${dados.length} envio(s) recebido(s)`;
+    lista.innerHTML = dados.map((item, idx) => renderCard(item, idx)).join("");
+
+  } catch(e) {
+    status.textContent = "Erro ao carregar dados";
+  }
+}
+
+function renderCard(item, idx) {
+  const origem = typeof item.origem === "object"
+    ? (item.origem.responsavel || item.origem.deviceId || "—")
+    : item.origem;
+
+  const dataRecebido = new Date(item.recebidoEm).toLocaleString("pt-BR");
+
+  const badgeHtml = item.downloads > 0
+    ? `<span class="badge badge-success">✓ Baixado em ${new Date(item.baixadoEm).toLocaleString("pt-BR")}</span>`
+    : `<span class="badge badge-warning">⏳ Não baixado</span>`;
+
+  const relatorios = item.dados || [];
+
+  const relsHtml = relatorios.map(r => {
+    const equipe = (r.equipe || []).map(f =>
+      `<span class="rel-chip">👤 ${f.nome}${f.matricula ? " · MAT:" + f.matricula : ""}</span>`
+    ).join("");
+
+    const osInfo = [r.os_codigo, r.os_descricao].filter(Boolean).join(" — ");
+
+    const diasHtml = (r.dias || []).map(d => {
+      const fds = isFDS(d.data);
+      return `<tr class="${fds ? "fds" : ""}">
+        <td>${fmtData(d.data)}</td>
+        <td class="time-cell">${d.entrada1||"--"} → ${d.saida1||"--"}</td>
+        <td class="time-cell">${d.entrada2||"--"} → ${d.saida2||"--"}</td>
+      </tr>`;
+    }).join("");
+
+    return `
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e8f0f0;">
+        ${equipe ? `<div class="rel-equipe">${equipe}</div>` : ""}
+        ${osInfo ? `<div class="rel-os">📋 ${osInfo}</div>` : ""}
+        ${diasHtml ? `
+        <table class="dias-table">
+          <thead><tr><th>Data</th><th>☀️ Manhã</th><th>🌤 Tarde</th></tr></thead>
+          <tbody>${diasHtml}</tbody>
+        </table>` : ""}
+      </div>`;
+  }).join("");
+
+  const obsHtml = item.observacao
+    ? `<div class="obs-box"><div class="obs-label">📝 Observação</div>${item.observacao}</div>`
+    : "";
+
+  return `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">👷 ${origem}</div>
+        ${badgeHtml}
+      </div>
+      <div class="card-meta">
+        <span>📅 ${dataRecebido}</span>
+        <span>📋 ${item.quantidade} relatório(s)</span>
+      </div>
+      ${relsHtml}
+      ${obsHtml}
+      <div class="card-actions">
+        <button class="btn-edit" onclick="abrirModal(${idx})">✏️ Observação</button>
+        <button class="btn-danger" onclick="excluir(${idx})">🗑️ Excluir</button>
+      </div>
+    </div>`;
+}
+
+function abrirModal(idx) {
+  editIdx = idx;
+  document.getElementById("obs-texto").value = dados[idx].observacao || "";
+  document.getElementById("modal-obs").classList.add("open");
+  document.getElementById("obs-texto").focus();
+}
+
+function fecharModal() {
+  document.getElementById("modal-obs").classList.remove("open");
+  editIdx = null;
+}
+
+async function salvarObs() {
+  if (editIdx === null) return;
+  const obs = document.getElementById("obs-texto").value.trim();
+  await fetch(`/api/assistencias/${editIdx}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ observacao: obs })
+  });
+  fecharModal();
+  carregar();
+}
+
+async function excluir(idx) {
+  if (!confirm("Excluir este apontamento?")) return;
+  await fetch(`/api/assistencias/${idx}`, { method: "DELETE" });
+  carregar();
+}
+
+document.getElementById("modal-obs").addEventListener("click", function(e) {
+  if (e.target === this) fecharModal();
+});
+
+carregar();
+</script>
+
+</body>
+</html>
