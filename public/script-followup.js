@@ -101,7 +101,7 @@ function renderLista() {
         <div>${itensHtml}</div>
 
         <div class="card-actions">
-          <button data-idx="${r._idx}" class="btn-danger btn-excluir">\uD83D\uDDD1\uFE0F Excluir</button>
+          <button onclick="excluir(${r._idx})" class="btn-danger">\uD83D\uDDD1\uFE0F Excluir</button>
         </div>
       </div>
     `;
@@ -124,14 +124,8 @@ async function exportarTodos() {
   a.click(); URL.revokeObjectURL(url);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btnExportar').addEventListener('click', exportarTodos);
-  document.getElementById('busca').addEventListener('input', renderLista);
-  document.getElementById('lista').addEventListener('click', e => {
-    const btn = e.target.closest('.btn-excluir');
-    if (btn) excluir(Number(btn.dataset.idx));
-  });
+document.getElementById('btnExportar').addEventListener('click', exportarTodos);
+document.getElementById('busca').addEventListener('input', renderLista);
 
-  carregar();
-  setInterval(carregar, 30000);
-});
+carregar();
+setInterval(carregar, 30000);

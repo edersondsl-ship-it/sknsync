@@ -220,6 +220,13 @@ app.get("/api/followups/:idx/download", (req, res) => {
 app.get("/api/followups/export/all", (req, res) => {
   if (!followups.length) return res.status(404).send("Nenhum follow-up disponível");
 
+  const agora = new Date().toISOString();
+  followups.forEach(item => {
+    item.downloads = (item.downloads || 0) + 1;
+    item.baixadoEm = agora;
+  });
+  salvarFollowups(followups);
+
   const linha = "═".repeat(56);
   let txt = `FOLLOW-UPS SKNSYNC — EXPORTAÇÃO COMPLETA\n`;
   txt += `Gerado em: ${new Date().toLocaleString("pt-BR")}\n`;
