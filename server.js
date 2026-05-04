@@ -288,6 +288,93 @@ app.post("/api/assistencia", (req, res) => {
 
 app.get("/api/assistencias", (req, res) => res.json(assistencias));
 
+// ================= ASSISTENCIA TXT =================
+const DIAS_SEMANA = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+function gerarTXTAssistencia(item) {
+  const linha = "═".repeat(52);
+  const div   = "─".repeat(52);
+  const origem = typeof item.origem === "object"
+    ? `${item.origem.responsavel || "—"} · ${item.origem.deviceId || "—"}`
+    : (item.origem || "—");
+
+  let txt = `${linha}\n`;
+  txt += `  APONTAMENTO DE ASSISTÊNCIA TÉCNICA — SKNSYNC\n`;
+  txt += `${linha}\n\n`;
+  txt += `Recebido em : ${new Date(item.recebidoEm).toLocaleString("pt-BR")}\n`;
+  txt += `Origem      : ${origem}\n`;
+  txt += `Relatórios  : ${item.quantidade}\n`;
+  if (item.observacao) txt += `Observação  : ${item.observacao}\n`;
+  txt += "\n";
+
+  (item.dados || []).forEach((r, i) => {
+    txt += `${div}\n`;
+    txt += `RELATÓRIO ${i + 1}\n`;
+    if (r.os_codigo || r.os_descricao) {
+      txt += `OS: ${[r.os_codigo, r.os_descricao].filter(Boolean).join(" — ")}\n`;
+    }
+    if (r.equipe && r.equipe.length) {
+      r.equipe.forEach(f => {
+        txt += `  Funcionário: ${f.nome}${f.matricula ? " — MAT: " + f.matricula : ""}\n`;
+      });
+    }
+    if (r.dias && r.dias.length) {
+      txt += `\n  Data             Manhã            Tarde\n`;
+      r.dias.forEach(d => {
+        const [y,m,dd] = d.data.split("-").map(Number);
+        const diaSem = DIAS_SEMANA[new Date(y, m-1, dd).getDay()];
+        const dataFmt = `${String(dd).padStart(2,"0")}/${String(m).padStart(2,"0")} (${diaSem})`;
+        const manha = `${d.entrada1||"--"} → ${d.saida1||"--"}`;
+        const tarde = `${d.entrada2||"--"} → ${d.saida2||"--"}`;
+        txt += `  ${dataFmt.padEnd(16)} ${manha.padEnd(16)} ${tarde}\n`;
+      });
+    }
+    txt += "\n";
+  });
+
+  txt += `${linha}\n`;
+  return txt;
+}
+
+// GET /api/assistencias/download/all
+app.get("/api/assistencias/download/all", (req, res) => {
+  if (!assistencias.length) return res.status(404).send("Nenhum apontamento disponível");
+
+  let txt = "APONTAMENTOS DE ASSISTÊNCIA TÉCNICA — TODOS OS ENVIOS\n";
+  txt += `Gerado em: ${new Date().toLocaleString("pt-BR")}\n`;
+  txt += `Total: ${assistencias.length} envio(s)\n`;
+  txt += "=".repeat(52) + "\n\n";
+
+  assistencias.forEach((item, i) => {
+    txt += `===== ENVIO ${i + 1} =====\n`;
+    txt += gerarTXTAssistencia(item);
+    txt += "\n";
+    item.downloads = (item.downloads || 0) + 1;
+    item.baixadoEm = new Date().toISOString();
+  });
+
+  salvarAssistencias(assistencias);
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="assistencia_todos_${Date.now()}.txt"`);
+  res.send(txt);
+});
+
+// GET /api/assistencias/:idx/download
+app.get("/api/assistencias/:idx/download", (req, res) => {
+  const idx = Number(req.params.idx);
+  const item = assistencias[idx];
+  if (!item) return res.status(404).send("Arquivo não encontrado");
+
+  item.downloads = (item.downloads || 0) + 1;
+  item.baixadoEm = new Date().toISOString();
+  salvarAssistencias(assistencias);
+
+  const nome = `assistencia_${item.recebidoEm.replace(/[:.]/g, "-")}.txt`;
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${nome}"`);
+  res.send(gerarTXTAssistencia(item));
+});
+
 app.put("/api/assistencias/:idx", (req, res) => {
   const idx = Number(req.params.idx);
   if (!assistencias[idx]) return res.status(404).json({ ok: false });

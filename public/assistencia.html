@@ -186,6 +186,7 @@
 <main>
   <div class="status-bar">
     <div id="status">Carregando...</div>
+    <a href="/api/assistencias/download/all" class="btn-primary">📦 Baixar todos</a>
   </div>
 
   <div id="lista"></div>
@@ -305,6 +306,7 @@ function renderCard(item, idx) {
       ${relsHtml}
       ${obsHtml}
       <div class="card-actions">
+        <a href="/api/assistencias/${idx}/download" class="btn-download">⬇️ Baixar .txt</a>
         <button class="btn-edit" onclick="abrirModal(${idx})">✏️ Observação</button>
         <button class="btn-danger" onclick="excluir(${idx})">🗑️ Excluir</button>
       </div>
